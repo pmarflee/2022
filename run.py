@@ -15,3 +15,4 @@ print("===================")
 # Day 1
 
 run(lambda path: day1.calculate(shared.read_file_lines(path), 1), 1, 1, 'data\\day1.txt')
+run(lambda path: day1.calculate(shared.read_file_lines(path), 2), 1, 2, 'data\\day1.txt')
