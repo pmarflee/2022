@@ -1,17 +1,11 @@
-from enum import Enum
+from enum import IntEnum
 
 def calculate(lines, part):
     return sum([_calculate(line, part) for line in lines])
 
 def _calculate(line, part):
     their_choice, your_choice = _parse_line(line, part)
-    match your_choice:
-        case Shape.ROCK:
-            score = 1
-        case Shape.PAPER:
-            score = 2
-        case Shape.SCISSORS:
-            score = 3
+    score = int(your_choice)
     match their_choice, your_choice:
         case (Shape.ROCK, Shape.ROCK) | (Shape.PAPER, Shape.PAPER) | (Shape.SCISSORS, Shape.SCISSORS):
             score += 3
@@ -66,7 +60,7 @@ def _parse_char_part2(char, their_choice):
         case _:
             raise ValueError('Invalid values')
 
-class Shape(Enum):
+class Shape(IntEnum):
     ROCK = 1,
     PAPER = 2,
     SCISSORS = 3
