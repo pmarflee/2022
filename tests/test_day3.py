@@ -10,3 +10,6 @@ class TestDay3:
 
     def test_day2_calculate_part1(self):
         assert day3.calculate(self.lines, 1) == 157, 'incorrect value'
+
+    def test_day2_calculate_part2(self):
+        assert day3.calculate(self.lines, 2) == 70, 'incorrect value'
