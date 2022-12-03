@@ -35,9 +35,10 @@ def _get_groups(lines, size):
 def _get_badge(first, second, third):
     for char_first in first:
         for char_second in second:
-            for char_third in third:
-                if char_first == char_second and char_second == char_third:
-                    return char_first
+            if char_first == char_second:
+                for char_third in third:
+                    if char_second == char_third:
+                        return char_first
 
 _chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 _priorities = {c: i + 1 for i, c in enumerate(_chars)}
