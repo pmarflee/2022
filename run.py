@@ -30,3 +30,4 @@ run(lambda path: day3.calculate(shared.read_file_lines(path), 2), 3, 2, 'data\\d
 # Day 4
 
 run(lambda path: day4.calculate(shared.read_file_lines(path), 1), 4, 1, 'data\\day4.txt')
+run(lambda path: day4.calculate(shared.read_file_lines(path), 2), 4, 2, 'data\\day4.txt')
