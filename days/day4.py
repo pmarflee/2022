@@ -15,6 +15,6 @@ def calculate(lines, part):
 
 def _parse(line):
     m = _regex.match(line)
-    return set([i for i in range(int(m.group(1)), int(m.group(2)) + 1)]), set([i for i in range(int(m.group(3)), int(m.group(4)) + 1)])
+    return set(range(int(m.group(1)), int(m.group(2)) + 1)), set(range(int(m.group(3)), int(m.group(4)) + 1))
 
 _regex = re.compile(r"^(\d+)-(\d+),(\d+)-(\d+)$")
