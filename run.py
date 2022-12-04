@@ -1,6 +1,6 @@
 import time
 from utils import shared
-from days import day1, day2, day3
+from days import day1, day2, day3, day4
 
 def run(action, day, part, path):
     start = time.time()
@@ -26,3 +26,7 @@ run(lambda path: day2.calculate(shared.read_file_lines(path), 2), 2, 2, 'data\\d
 
 run(lambda path: day3.calculate(shared.read_file_lines(path), 1), 3, 1, 'data\\day3.txt')
 run(lambda path: day3.calculate(shared.read_file_lines(path), 2), 3, 2, 'data\\day3.txt')
+
+# Day 4
+
+run(lambda path: day4.calculate(shared.read_file_lines(path), 1), 4, 1, 'data\\day4.txt')
