@@ -41,10 +41,8 @@ class Ship:
                     
     def execute_instructions(self):
         for instruction in self.instructions:
-            source_index = instruction.source - 1 
-            target_index = instruction.target - 1
-            source = self.stacks[source_index]
-            target = self.stacks[target_index]
+            source_index, target_index = instruction.source - 1, instruction.target - 1
+            source, target = self.stacks[source_index], self.stacks[target_index]
             match self.part:
                 case 1:
                     for _ in range(instruction.number):
