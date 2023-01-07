@@ -62,20 +62,6 @@ def _parse_item_file(line):
     if (parsed_item_file := _regex_item_file.match(line)):
         return ("file", str(parsed_item_file.group(2)), int(parsed_item_file.group(1)))
 
-class ChangeDirectoryInstruction:
-    def __init__(self, target):
-        self.target = target
-
-    def __repr__(self):
-        return f'ChangeDirectoryInstruction({self.target=})'
-
-class ListInstruction:
-    def __init__(self):
-        pass
-
-    def __repr__(self):
-        return "ListInstruction()"
-
 class FileSystem:
     def __init__(self):
         self._root_directory = Directory("/", None)
