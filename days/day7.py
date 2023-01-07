@@ -1,4 +1,3 @@
-from enum import IntEnum
 import re
 
 def calculate(lines, part):
@@ -62,10 +61,6 @@ def _parse_item_dir(line):
 def _parse_item_file(line):
     if (parsed_item_file := _regex_item_file.match(line)):
         return ("file", str(parsed_item_file.group(2)), int(parsed_item_file.group(1)))
-
-class Mode(IntEnum):
-    COMMAND = 1,
-    LIST = 2
 
 class ChangeDirectoryInstruction:
     def __init__(self, target):
