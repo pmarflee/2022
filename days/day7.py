@@ -4,7 +4,7 @@ import re
 def calculate(lines, part):
     file_system = FileSystem()
     current_directory = file_system.current_directory
-    directories = {current_directory: 0}
+    directories = [current_directory]
 
     for line in lines:
         match _parse_line(line):
@@ -14,23 +14,20 @@ def calculate(lines, part):
                 pass
             case ("directory", name):
                 new_directory = current_directory.add_directory(name, current_directory)
-                directories[new_directory] = 0
-                # print(f'Added directory {new_directory}')
+                directories.append(new_directory)
             case ("file", name, size):
                 current_directory.add_file(name, size)
                 directory = current_directory
                 while directory is not None:
-                    if directory in directories:
-                        new_size = directories[directory] + size
-                        # print(f'New size of directory {directory}: {new_size}')
-                        if new_size > 100000:
-                            del directories[directory]
-                            # print(f'Removing directory {directory}')
-                        else:
-                            directories[directory] = new_size
+                    directory.size += size
                     directory = directory.parent
 
-    return sum([directories[item] for item in list(directories)])
+    match part:
+        case 1:
+            return sum([directory.size for directory in directories if directory.size <= 100000])
+        case 2:
+            space_required = 30000000 - (70000000 - directories[0].size)
+            return min([directory.size for directory in directories if directory.size >= space_required])
 
 def _parse_line(line):
     if (parsed_instruction := _parse_instruction(line)):
@@ -123,9 +120,10 @@ class Directory(FileSystemItem):
         self._files = []
         self._directories = {}
         self._parent = parent
+        self.size = 0
 
     def __repr__(self):
-        return f'Directory({self.name=})'
+        return f'Directory({self.name=}, {self.size=})'
 
     @property
     def files(self):

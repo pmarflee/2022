@@ -26,3 +26,6 @@ class TestDay7:
               "7214296 k" ]
     def test_day7_calculate_part1(self):
         assert day7.calculate(self.lines, 1) == 95437
+
+    def test_day7_calculate_part2(self):
+        assert day7.calculate(self.lines, 2) == 24933642
