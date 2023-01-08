@@ -1,6 +1,6 @@
 import time
 from utils import shared
-from days import day1, day2, day3, day4, day5, day6, day7
+from days import day1, day2, day3, day4, day5, day6, day7, day8
 
 total_elapsed = 0.0
 
@@ -54,6 +54,10 @@ run(lambda path: day6.calculate(shared.read_file_content(path), 2), 6, 2, 'data\
 
 run(lambda path: day7.calculate(shared.read_file_lines(path), 1), 7, 1, 'data\\day7.txt')
 run(lambda path: day7.calculate(shared.read_file_lines(path), 2), 7, 2, 'data\\day7.txt')
+
+# Day 8
+
+run(lambda path: day8.calculate(shared.read_file_lines(path), 1), 8, 1, 'data\\day8.txt')
 
 print()
 print(f"Total elapsed: {total_elapsed}s")
