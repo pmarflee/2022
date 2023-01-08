@@ -7,4 +7,4 @@ class TestDay8:
         assert day8.calculate(self.lines, 1) == 21
 
     def test_day8_calculate_part2(self):
-        pass
+        assert day8.calculate(self.lines, 2) == 8
