@@ -8,3 +8,6 @@ def read_file_lines(path):
 
 def read_file_integers(path):
     return map(int, read_file_lines(path))
+
+def sign(value: int) -> int:
+    return (value > 0) - (value < 0)

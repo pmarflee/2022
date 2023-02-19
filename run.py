@@ -63,6 +63,7 @@ run(lambda path: day8.calculate(shared.read_file_lines(path), 2), 8, 2, 'data\\d
 # Day 9
 
 run(lambda path: day9.calculate(shared.read_file_lines(path), 1), 9, 1, 'data\\day9.txt')
+run(lambda path: day9.calculate(shared.read_file_lines(path), 2), 9, 2, 'data\\day9.txt')
 
 print()
 print(f"Total elapsed: {total_elapsed}s")

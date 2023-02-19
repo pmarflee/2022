@@ -1,9 +1,11 @@
 from __future__ import annotations
 from typing import List
 from enum import IntEnum
+from utils import shared
 
 def calculate(lines: List[str], part: int):
-    rope = Rope()
+    length = 2 if part == 1 else 10
+    rope = Rope(length)
     for line in lines:
         instruction = _parse(line)
         rope.move(instruction)
@@ -40,65 +42,66 @@ class Instruction:
        self.direction = direction
        self.distance = distance
 
-class Position:
+class Knot:
     def __init__(self, x: int = 0, y: int = 0):
         self.x = x
         self.y = y
 
-    def __eq__(self, other: Position):
-        if not isinstance(other, Position):
-            return NotImplemented
-        return self.x == other.x and self.y == other.y
+    def __repr__(self):
+        return f'Knot({self.x=}, {self.y=})'
 
-    def __hash__(self):
-        return hash((self.x, self.y))
+    @property
+    def position(self) -> tuple[int, int]:
+        return (self.x, self.y)
 
-    def add(self, x: int, y: int) -> Position:
-        return Position(self.x + x, self.y + y)
+    def add(self, x: int, y: int) -> Knot:
+        return Knot(self.x + x, self.y + y)
+
+    def get_position_relative_to(self, other: Knot) -> tuple[int, int, bool]:
+        offset_x, offset_y = self.x - other.x, self.y - other.y
+        return (offset_x, offset_y, abs(offset_x) <= 1 and abs(offset_y) <= 1)
 
 class Rope:
-    def __init__(self) -> None:
-        self.head = Position()
-        self.tail = Position()
-        self.visited = set([self.tail])
+    def __init__(self, length: int) -> None:
+        self.knots = list(Knot() for _ in range(length))
+        self.visited = set([self.tail.position])
+
+    @property
+    def head(self):
+        return self.knots[0]
+
+    @head.setter
+    def head(self, value: Knot):
+        self.knots[0] = value
+
+    @property
+    def tail(self):
+        return self.knots[len(self.knots) - 1]
 
     def move(self, instruction: Instruction):
         for _ in range(instruction.distance):
             self.__move_head(instruction)
-            self.__move_tail()
+            for i in range(1, len(self.knots)):
+                self.__move_knot(i, self.knots[i], self.knots[i - 1])
 
     def __move_head(self, instruction: Instruction) -> None:
         match instruction.direction:
             case Direction.UP:
-                self.head = Position(self.head.x, self.head.y + 1)
+                self.head = self.head.add(0, 1)
             case Direction.DOWN:
-                self.head = Position(self.head.x, self.head.y - 1)
+                self.head = self.head.add(0, -1)
             case Direction.LEFT:
-                self.head = Position(self.head.x - 1, self.head.y)
+                self.head = self.head.add(-1, 0)
             case Direction.RIGHT:
-                self.head = Position(self.head.x + 1, self.head.y)
+                self.head = self.head.add(1, 0)
 
-    def __move_tail(self) -> None:
-        offset_x, offset_y = self.__get_head_tail_offset()
-        if offset_x > 1:
-            change_x = 1
-            change_y = offset_y
-        elif offset_x < -1:
-            change_x = -1
-            change_y = offset_y
-        elif offset_y > 1:
-            change_x = offset_x
-            change_y = 1
-        elif offset_y < -1:
-            change_x = offset_x
-            change_y = -1
-        else:
-            change_x = 0
-            change_y = 0
+    def __move_knot(self, knot_index: int, knot: Knot, knot_previous: Knot) -> None:
+        offset_x, offset_y, is_touching = knot_previous.get_position_relative_to(knot)
 
-        if change_x != 0 or change_y != 0:
-            self.tail = self.tail.add(change_x, change_y)
-            self.visited.add(self.tail)
-
-    def __get_head_tail_offset(self) -> tuple[int, int]:
-        return (self.head.x - self.tail.x, self.head.y - self.tail.y)
+        if not is_touching:
+            change_x, change_y = shared.sign(offset_x), shared.sign(offset_y)
+            knot_new = knot.add(change_x, change_y)
+            new_position = knot_new.position
+            if knot == self.tail:
+                self.visited.add(new_position)
+            self.knots[knot_index] = knot_new
