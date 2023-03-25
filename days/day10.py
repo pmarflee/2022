@@ -67,6 +67,11 @@ class Device(ABC):
     def clock_ticked(self, cycles):
         pass
     
+    @property
+    @abstractmethod
+    def result(self):
+        pass
+
     def execute(self, instruction):
         for _ in range(instruction.cycles):
             self.clock.tick(self.clock_ticked)
@@ -83,16 +88,43 @@ class CPU(Device):
     def sum_signal_strengths(self):
         return sum(self.__signal_strengths)
 
+    @property
+    def result(self):
+        return self.sum_signal_strengths
+
     def clock_ticked(self, cycles):
         if cycles in CPU.__sample_cycles:
             self.__signal_strengths.append(cycles * self.X)
 
+class CRT(Device):
+    def __init__(self):
+        super().__init__()
+    
+    @property
+    def result(self):
+        pass
+
+    def clock_ticked(self, cycles):
+        position = cycles % 40 - 1
+        char = '#' if position >= self.X - 1 and position <= self.X + 1 else '.'
+        print(char, end='')
+        if cycles % 40 == 0:
+            print()
+
 def calculate(lines, part):
-    cpu = CPU()
+    match part:
+        case 1:
+            device = CPU()
+        case 2:
+            device = CRT()
+        case _:
+            raise ValueError('Invalid part')
+    
     for line in lines:
         instruction = __parse(line)
-        cpu.execute(instruction)
-    return cpu.sum_signal_strengths
+        device.execute(instruction)
+
+    return device.result
 
 def __parse(line):
     if line == 'noop':
