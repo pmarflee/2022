@@ -1,13 +1,26 @@
 import re
-import time
 from collections import deque
+
+class Part1WorryLevelReducer:
+    def calculate_new_worry_level(self, item):
+        return item.worry_level // 3
+
+class Part2WorryLevelReducer:
+    def __init__(self, monkeys):
+        product = 1
+        for monkey in monkeys:
+            product *= monkey.divisor
+        self.divisor = product
+
+    def calculate_new_worry_level(self, item):
+        return item.worry_level % self.divisor
 
 class Item:
     def __init__(self, worry_level):
         self.worry_level = worry_level
 
-    def reduce_worry_level(self):
-        self.worry_level = self.worry_level // 3
+    def reduce_worry_level(self, worry_level_reducer):
+        self.worry_level = worry_level_reducer.calculate_new_worry_level(self)
 
     def __repr__(self):
         return f'Item({self.worry_level=})'
@@ -67,10 +80,14 @@ class Monkey:
     def inspections(self):
         return self.__inspections
 
-    def inspect_and_throw(self, monkeys, reduce_worry_levels):
+    @property
+    def divisor(self):
+        return self.__tester.divisor
+
+    def inspect_and_throw(self, monkeys, worry_level_reducer):
         while len(self.__items) > 0:
             item = self.__items.popleft()
-            self.__inspect(item, reduce_worry_levels)
+            self.__inspect(item, worry_level_reducer)
             monkey_to_throw_to = self.__calculate_monkey_to_throw_to(item, monkeys)
             self.__throw(item, monkey_to_throw_to)
 
@@ -110,11 +127,10 @@ class Monkey:
         tester = Monkey.__parse_tester(lines, start_index + 3)
         return Monkey(number, items, operation, tester)
 
-    def __inspect(self, item, reduce_worry_levels):
+    def __inspect(self, item, worry_level_reducer):
         self.__operation.execute(item)
         self.__inspections += 1
-        if reduce_worry_levels:
-            item.reduce_worry_level()
+        item.reduce_worry_level(worry_level_reducer)
 
     def __calculate_monkey_to_throw_to(self, item, monkeys):
         monkey_to_throw_to = self.__tester.test(item)
@@ -124,15 +140,14 @@ class Monkey:
         monkey_to_throw_to.catch(item)
 
 class Game:
-    def __init__(self, rounds, reduce_worry_levels):
+    def __init__(self, rounds, worry_level_reducer):
         self.__rounds = rounds
-        self.__reduce_worry_levels = reduce_worry_levels
+        self.__worry_level_reducer = worry_level_reducer
 
     def play(self, monkeys):
-        for round in range(self.__rounds):
-            print(f"Round: {round}")
+        for _ in range(self.__rounds):
             for monkey in monkeys:
-                monkey.inspect_and_throw(monkeys, self.__reduce_worry_levels)
+                monkey.inspect_and_throw(monkeys, self.__worry_level_reducer)
         return self.__get_result(monkeys)
 
     def __get_result(self, monkeys):
@@ -140,18 +155,18 @@ class Game:
         return sorted_monkeys[0].inspections * sorted_monkeys[1].inspections
 
 def calculate(lines, part):
+    monkeys = list(__parse(lines))
     match part:
         case 1:
             rounds = 20
-            reduce_worry_levels = True
+            worry_level_reducer = Part1WorryLevelReducer()
         case 2:
             rounds = 10000
-            reduce_worry_levels = False
+            worry_level_reducer = Part2WorryLevelReducer(monkeys)
         case _:
             raise ValueError('Invalid part')
 
-    monkeys = list(__parse(lines))
-    game = Game(rounds, reduce_worry_levels)
+    game = Game(rounds, worry_level_reducer)
     return game.play(monkeys)
 
 def __parse(lines):
