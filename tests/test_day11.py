@@ -33,3 +33,6 @@ class TestDay11:
 
     def test_day11_calculate_part1(self):
         assert day11.calculate(self.lines, 1) == 10605
+
+    def test_day11_calculate_part2(self):
+        assert day11.calculate(self.lines, 2) == 2713310158
