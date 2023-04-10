@@ -27,3 +27,6 @@ class TestDay13:
 
     def test_day13_calculate_part1(self):
         assert day13.calculate(self.lines, 1) == 13
+
+    def test_day13_calculate_part2(self):
+        assert day13.calculate(self.lines, 2) == 140
