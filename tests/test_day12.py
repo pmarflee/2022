@@ -21,4 +21,4 @@ class TestDay12:
         assert day12.calculate(self.lines, 1) == 31
 
     def test_day12_calculate_part2(self):
-        pass
+        assert day12.calculate(self.lines, 2) == 29
