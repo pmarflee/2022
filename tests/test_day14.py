@@ -1,6 +1,7 @@
 from days import day14
 from days.day14 import Stuff
 
+
 class TestDay14:
     lines = ['498,4 -> 498,6 -> 496,6',
              '503,4 -> 502,4 -> 502,9 -> 494,9']
@@ -11,7 +12,7 @@ class TestDay14:
         min_x=494, max_x=503, max_y=9)
 
     cave_data = [
-        [None, None, None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, Stuff.SOURCE, None, None, None],
         [None, None, None, None, None, None, None, None, None, None],
         [None, None, None, None, None, None, None, None, None, None],
         [None, None, None, None, None, None, None, None, None, None],

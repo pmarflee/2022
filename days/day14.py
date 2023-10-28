@@ -15,12 +15,13 @@ class ScanResult:
 class Stuff(Enum):
     ROCK = 1
     SAND = 2
+    SOURCE = 3
 
 
 class Cave:
     def __init__(self, scan: ScanResult):
         self.__offset = scan.min_x
-        self.source = (0, 500)
+        self.__source = (0, 500 - scan.min_x)
 
         width = scan.max_x - scan.min_x
         data: list[list[Optional[Stuff]]] = [[None for _ in range(width + 1)] for _ in range(scan.max_y + 1)]
@@ -29,6 +30,8 @@ class Cave:
             for (x_previous, y_previous), (x_current, y_current) in pairwise(line):
                 for x, y in self.__get_rock_range(x_previous, y_previous, x_current, y_current):
                     data[y][x] = Stuff.ROCK
+
+        data[self.__source[0]][self.__source[1]] = Stuff.SOURCE
 
         self.__width = width
         self.__data = data
