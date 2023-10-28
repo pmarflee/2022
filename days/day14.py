@@ -24,17 +24,15 @@ class Cave:
         self.__source = (0, 500 - scan.min_x)
 
         width = scan.max_x - scan.min_x
-        data: list[list[Optional[Stuff]]] = [[None for _ in range(width + 1)] for _ in range(scan.max_y + 1)]
+        self.__data: list[list[Optional[Stuff]]] = [[None for _ in range(width + 1)] for _ in range(scan.max_y + 1)]
 
         for line in scan.paths:
             for (x_previous, y_previous), (x_current, y_current) in pairwise(line):
                 for x, y in self.__get_rock_range(x_previous, y_previous, x_current, y_current):
-                    data[y][x] = Stuff.ROCK
+                    self.__set_stuff(x, y, Stuff.ROCK)
 
-        data[self.__source[0]][self.__source[1]] = Stuff.SOURCE
-
+        self.__set_stuff(self.__source[1], self.__source[0], Stuff.SOURCE)
         self.__width = width
-        self.__data = data
 
     @property
     def data(self):
@@ -52,6 +50,8 @@ class Cave:
             min_x, max_x = min(x_previous, x_current), max(x_previous, x_current)
             return [(self.__get_row_index(x), y_previous) for x in range(min_x, max_x + 1)]
 
+    def __set_stuff(self, x: int, y: int, stuff: Stuff):
+        self.__data[y][x] = stuff
 
 def calculate(lines, part):
     pass
