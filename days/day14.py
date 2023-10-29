@@ -83,7 +83,7 @@ class Grain:
         location_x, location_y = self.location
         next_x, next_y = location_x + x_offset, location_y + y_offset
 
-        if next_x > self.cave.width or next_x < 0 or next_y > self.cave.height:
+        if next_x > self.cave.max_x or next_x < self.cave.min_x or next_y > self.cave.height:
             return None
 
         return next_x, next_y, self.cave.get_stuff(next_x, next_y)
@@ -94,20 +94,20 @@ class Cave:
 
     def __init__(self, scan: ScanResult):
         self.__offset = scan.min_x
-        self.__source = (500 - scan.min_x, 0)
+        self.__source = (500, 0)
 
-        width = scan.max_x - scan.min_x
-        self.__data: list[list[Optional[Stuff]]] = [[None for _ in range(width + 1)] for _ in range(scan.max_y + 1)]
+        self.__data: dict[int, list[Optional[Stuff]]] = dict(
+            [(i, [None for _ in range(scan.max_y + 1)]) for i in range(scan.min_x, scan.max_x + 1)])
 
         for line in scan.paths:
             for (x_previous, y_previous), (x_current, y_current) in pairwise(line):
-                for x, y in self.__get_rock_range(x_previous, y_previous, x_current, y_current):
+                for x, y in Cave.__get_rock_range(x_previous, y_previous, x_current, y_current):
                     self.set_stuff(Stuff.ROCK, x, y)
 
         self.set_stuff(Stuff.SOURCE, *self.__source)
-        self.__width = width
+        self.__min_x = scan.min_x
+        self.__max_x = scan.max_x
         self.__height = scan.max_y
-        self.__is_full = False
         self.__last_grain = None
 
     @property
@@ -119,8 +119,12 @@ class Cave:
         return self.__source
 
     @property
-    def width(self):
-        return self.__width
+    def min_x(self):
+        return self.__min_x
+
+    @property
+    def max_x(self):
+        return self.__max_x
 
     @property
     def height(self):
@@ -158,9 +162,12 @@ class Cave:
     def __str__(self):
         result = '\r\n'
 
-        for row, line in enumerate(self.data):
-            for col, stuff in enumerate(line):
-                match stuff:
+        keys = list(self.data.keys())
+        min_x, max_x = min(keys), max(keys)
+
+        for row in range(self.__height + 1):
+            for col in range(min_x, max_x + 1):
+                match self.data[col][row]:
                     case Stuff.ROCK:
                         c = '#'
                     case Stuff.SAND:
@@ -176,24 +183,21 @@ class Cave:
 
         return result
 
-    def __get_row_index(self, x: int) -> int:
-        return x - self.__offset
-
-    def __get_rock_range(self, x_previous: int, y_previous: int, x_current: int, y_current: int) -> list[
+    @staticmethod
+    def __get_rock_range(x_previous: int, y_previous: int, x_current: int, y_current: int) -> list[
             tuple[int, int]]:
         if x_previous == x_current:
-            x = self.__get_row_index(x_previous)
             min_y, max_y = min(y_previous, y_current), max(y_previous, y_current)
-            return [(x, y) for y in range(min_y, max_y + 1)]
+            return [(x_previous, y) for y in range(min_y, max_y + 1)]
         else:
             min_x, max_x = min(x_previous, x_current), max(x_previous, x_current)
-            return [(self.__get_row_index(x), y_previous) for x in range(min_x, max_x + 1)]
+            return [(x, y_previous) for x in range(min_x, max_x + 1)]
 
     def set_stuff(self, stuff: Optional[Stuff], x: int, y: int):
-        self.__data[y][x] = stuff
+        self.data[x][y] = stuff
 
     def get_stuff(self, x: int, y: int) -> Optional[Stuff]:
-        return self.data[y][x]
+        return self.data[x][y]
 
     def __log(self, count: int):
         if enable_logging:
