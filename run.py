@@ -1,8 +1,9 @@
 import time
 from utils import shared
-from days import day1, day2, day3, day4, day5, day6, day7, day8, day9, day10, day11, day12, day13
+from days import day1, day2, day3, day4, day5, day6, day7, day8, day9, day10, day11, day12, day13, day14
 
 total_elapsed = 0.0
+
 
 def run(action, day, part, path):
     global total_elapsed
@@ -15,6 +16,7 @@ def run(action, day, part, path):
     total_elapsed += elapsed
 
     print(f"Day {day}, Part {part}: {result} ({elapsed}s)")
+
 
 print("Advent of Code 2022")
 print("===================")
@@ -84,6 +86,9 @@ run(lambda path: day12.calculate(shared.read_file_lines(path), 2), 12, 2, 'data\
 
 run(lambda path: day13.calculate(shared.read_file_lines(path), 1), 13, 1, 'data\\day13.txt')
 run(lambda path: day13.calculate(shared.read_file_lines(path), 2), 13, 2, 'data\\day13.txt')
+
+# Day 14
+run(lambda path: day14.calculate(shared.read_file_lines(path), 1), 14, 1, 'data\\day14.txt')
 
 print()
 print(f"Total elapsed: {total_elapsed}s")
