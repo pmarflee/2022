@@ -37,6 +37,8 @@ class Grain:
         self.__location: Optional[tuple[int, int]] = cave.source
         self.__cave = cave
 
+        cave.set_stuff(Stuff.SAND, *cave.source)
+
     @property
     def location(self) -> Optional[tuple[int, int]]:
         return self.__location
@@ -52,6 +54,8 @@ class Grain:
     def drop(self) -> None:
         result = MoveResult.FALLING
 
+        self.cave.log_grain_location()
+
         while result == MoveResult.FALLING:
             new_result: Optional[MoveResult] = None
 
@@ -64,11 +68,11 @@ class Grain:
                 else:
                     next_x, next_y, stuff = next_location
 
-                    if stuff is None:
+                    if stuff is None or stuff == Stuff.SOURCE:
                         self.cave.move_sand(self.location, (next_x, next_y))
                         self.__location = (next_x, next_y)
                         new_result = MoveResult.FALLING
-                        self.cave.log_grain_location(self)
+                        self.cave.log_grain_location()
                         break
 
             result = new_result if new_result is not None else MoveResult.RESTED
@@ -83,8 +87,11 @@ class Grain:
         location_x, location_y = self.location
         next_x, next_y = location_x + x_offset, location_y + y_offset
 
-        if next_x > self.cave.max_x or next_x < self.cave.min_x or next_y > self.cave.height:
+        if next_y > self.cave.height:
             return None
+
+        if next_x > self.cave.max_x or next_x < self.cave.min_x:
+            return next_x, next_y, Stuff.ROCK if self.cave.has_floor and next_y == self.cave.height else None
 
         return next_x, next_y, self.cave.get_stuff(next_x, next_y)
 
@@ -92,23 +99,23 @@ class Grain:
 class Cave:
     __log_file = 'day14.txt'
 
-    def __init__(self, scan: ScanResult):
+    def __init__(self, scan: ScanResult, has_floor: bool):
         self.__offset = scan.min_x
         self.__source = (500, 0)
+        self.__height = scan.max_y + (2 if has_floor else 0)
+        self.__min_x = scan.min_x
+        self.__max_x = scan.max_x
+        self.__has_floor = has_floor
+        self.__current_grain = None
+        self.__last_grain = None
 
         self.__data: dict[int, list[Optional[Stuff]]] = dict(
-            [(i, [None for _ in range(scan.max_y + 1)]) for i in range(scan.min_x, scan.max_x + 1)])
+            [(i, self.__create_column()) for i in range(scan.min_x, scan.max_x + 1)])
 
         for line in scan.paths:
             for (x_previous, y_previous), (x_current, y_current) in pairwise(line):
                 for x, y in Cave.__get_rock_range(x_previous, y_previous, x_current, y_current):
                     self.set_stuff(Stuff.ROCK, x, y)
-
-        self.set_stuff(Stuff.SOURCE, *self.__source)
-        self.__min_x = scan.min_x
-        self.__max_x = scan.max_x
-        self.__height = scan.max_y
-        self.__last_grain = None
 
     @property
     def data(self):
@@ -131,6 +138,14 @@ class Cave:
         return self.__height
 
     @property
+    def has_floor(self):
+        return self.__has_floor
+
+    @property
+    def current_grain(self) -> Optional[Grain]:
+        return self.__current_grain
+
+    @property
     def last_grain(self) -> Optional[Grain]:
         return self.__last_grain
 
@@ -139,25 +154,84 @@ class Cave:
         i = 0
 
         self.__clear_log()
-        self.__log(i)
+        Cave.__log_count(i)
+        self.__log_cave()
 
         while True:
             i += 1
-            grain = Grain(self)
+            self.__current_grain = grain = Grain(self)
+            Cave.__log_count(i)
             grain.drop()
             if grain.is_lost:
                 break
             else:
                 self.__last_grain = grain
-                self.__log(i)
+                self.__log_cave()
+
                 count += 1
+
+                if self.is_full:
+                    self.__log_cave()
+                    break
 
         return count
 
     def move_sand(self, from_location: tuple[int, int], to_location: tuple[int, int]):
-        if self.get_stuff(*from_location) == Stuff.SAND:
-            self.set_stuff(None, *from_location)
+        self.set_stuff(None, *from_location)
         self.set_stuff(Stuff.SAND, *to_location)
+
+    def set_stuff(self, stuff: Optional[Stuff], x: int, y: int):
+        if x not in self.data:
+            self.data[x] = self.__create_column()
+
+            if x < self.min_x:
+                self.__min_x = x
+            elif x > self.max_x:
+                self.__max_x = x
+
+        self.data[x][y] = stuff
+
+    def get_stuff(self, x: int, y: int) -> Optional[Stuff]:
+        return self.data[x][y]
+
+    @property
+    def is_full(self):
+        return self.get_stuff(*self.source) == Stuff.SAND
+
+    @staticmethod
+    def __get_rock_range(x_previous: int, y_previous: int, x_current: int, y_current: int) -> list[
+        tuple[int, int]]:
+        if x_previous == x_current:
+            min_y, max_y = min(y_previous, y_current), max(y_previous, y_current)
+            return [(x_previous, y) for y in range(min_y, max_y + 1)]
+        else:
+            min_x, max_x = min(x_previous, x_current), max(x_previous, x_current)
+            return [(x, y_previous) for x in range(min_x, max_x + 1)]
+
+    def __create_column(self):
+        return [Stuff.ROCK if self.has_floor and i == self.height else None for i in range(self.height + 1)]
+
+    @staticmethod
+    def __log_count(count: int):
+        if enable_logging:
+            with open(Cave.__log_file, 'a') as log_file:
+                log_file.write(f"{count}\n")
+
+    def __log_cave(self, log: bool = False):
+        if enable_logging or log:
+            with open(Cave.__log_file, 'a') as log_file:
+                log_file.writelines(f"{self}\n")
+
+    def log_grain_location(self) -> None:
+        if enable_logging:
+            with open(Cave.__log_file, 'a') as log_file:
+                log_file.write(f"Grain location: {self.current_grain.location}\n")
+
+    @staticmethod
+    def __clear_log():
+        if enable_logging:
+            if os.path.isfile(Cave.__log_file):
+                os.remove(Cave.__log_file)
 
     def __str__(self):
         result = '\r\n'
@@ -174,8 +248,8 @@ class Cave:
                         c = 'O' if self.last_grain is not None and (col, row) == self.last_grain.location else 'o'
                     case Stuff.SOURCE:
                         c = '+'
-                    case None:
-                        c = '.'
+                    case _:
+                        c = '+' if (col, row) == self.source else '.'
 
                 result += c
 
@@ -183,43 +257,10 @@ class Cave:
 
         return result
 
-    @staticmethod
-    def __get_rock_range(x_previous: int, y_previous: int, x_current: int, y_current: int) -> list[
-            tuple[int, int]]:
-        if x_previous == x_current:
-            min_y, max_y = min(y_previous, y_current), max(y_previous, y_current)
-            return [(x_previous, y) for y in range(min_y, max_y + 1)]
-        else:
-            min_x, max_x = min(x_previous, x_current), max(x_previous, x_current)
-            return [(x, y_previous) for x in range(min_x, max_x + 1)]
-
-    def set_stuff(self, stuff: Optional[Stuff], x: int, y: int):
-        self.data[x][y] = stuff
-
-    def get_stuff(self, x: int, y: int) -> Optional[Stuff]:
-        return self.data[x][y]
-
-    def __log(self, count: int):
-        if enable_logging:
-            with open(Cave.__log_file, 'a') as log_file:
-                log_file.write(f"{count}\n")
-                log_file.writelines(f"{self}\n")
-
-    def log_grain_location(self, grain: Grain) -> None:
-        if enable_logging:
-            with open(Cave.__log_file, 'a') as log_file:
-                log_file.write(f"Grain location: {grain.location}\n")
-
-    @staticmethod
-    def __clear_log():
-        if enable_logging:
-            if os.path.isfile(Cave.__log_file):
-                os.remove(Cave.__log_file)
-
 
 def calculate(lines: list[string], part: int) -> int:
     scan = parse_paths(lines)
-    cave = Cave(scan)
+    cave = Cave(scan, part == 2)
 
     return cave.produce_sand()
 
